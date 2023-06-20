@@ -48,6 +48,7 @@ class InferDonutWidget(core.CWorkflowTaskWidget):
         self.combo_model_name = pyqtutils.append_combo(self.grid_layout, "Model")
         for model in model_zoo:
             self.combo_model_name.addItem(model)
+        self.combo_model_name.setCurrentText(self.parameters.model_name)
 
         # Prompt
         self.edit_prompt = pyqtutils.append_edit(self.grid_layout, "Prompt", self.parameters.prompt)
@@ -55,8 +56,6 @@ class InferDonutWidget(core.CWorkflowTaskWidget):
         # Cuda
         self.check_cuda = pyqtutils.append_check(self.grid_layout, "Cuda", self.parameters.cuda and cuda.is_available())
         self.check_cuda.setEnabled(cuda.is_available())
-
-        self.check_docvqa = pyqtutils.append_check(self.grid_layout, "Visual question answering", self.parameters == 'docvqa')
 
         # PyQt -> Qt wrapping
         layout_ptr = qtconversion.PyQtToQt(self.grid_layout)
@@ -70,13 +69,18 @@ class InferDonutWidget(core.CWorkflowTaskWidget):
         # Get parameters from widget
         # Example : self.parameters.windowSize = self.spinWindowSize.value()
         self.parameters.prompt = self.edit_prompt.text()
-        self.parameters.cuda = self.check_cuda.isChecked()
-        self.parameters.model_name = self.combo_model_name.currentText()
-        if self.parameters.model_name is not model_zoo:
-            self.parameters.task_name = model_zoo[self.parameters.model_name]
+        is_cuda = self.check_cuda.isChecked()
+        model_name = self.combo_model_name.currentText()
+        if model_name in model_zoo:
+            task_name = model_zoo[model_name]
         else:
-            self.parameters.task_name = 'docvqa' if self.check_docvqa.isChecked() else 'other'
-
+            raise NotImplementedError
+        if model_name != self.parameters.model_name or task_name != self.parameters.task_name or \
+                is_cuda != self.parameters.cuda:
+            self.parameters.update = True
+        self.parameters.model_name = model_name
+        self.parameters.cuda = is_cuda
+        self.parameters.task_name = task_name
         # Send signal to launch the process
         self.emit_apply(self.parameters)
 

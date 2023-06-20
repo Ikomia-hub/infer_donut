@@ -39,6 +39,7 @@ class InferDonutParam(core.CWorkflowTaskParam):
         self.task_name = 'docvqa'
         self.cuda = True
         self.prompt = ''
+        self.update = True
 
     def set_values(self, param_map):
         # Set parameters values from Ikomia application
@@ -98,7 +99,6 @@ class InferDonut(dataprocess.C2dImageTask):
                 prompt=f"<s_{task_name}><s_question>{question.lower()}</s_question><s_answer>",
             )["predictions"][0]
         else:
-            print(task_name)
             output = \
             self.model.inference(image=img, prompt=f"<s_{task_name}>")["predictions"][0]
         return output
@@ -111,16 +111,19 @@ class InferDonut(dataprocess.C2dImageTask):
         param = self.get_param_object()
 
         if self.model is None or param.update:
+            print("Loading model...")
+            del self.model
             self.model = DonutModel.from_pretrained(param.model_name, ignore_mismatched_sizes=True)
             if torch.cuda.is_available() and param.cuda:
                 self.model.half()
                 self.model.to("cuda")
             self.model.eval()
-            if param.model_name in model_zoo:
-                param.task_name = model_zoo[param.model_name]
-            elif self.task_name != 'docvqa' and param.prompt != '':
-                print("Parameter prompt is only available for document visual question answering task.")
+
             param.update = False
+            print("Model loaded.")
+
+        elif param.task_name != 'docvqa' and param.prompt != '':
+            print("Parameter prompt is only available for document visual question answering task.")
 
         img_input = self.get_input(0)
 
