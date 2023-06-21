@@ -44,19 +44,25 @@ class InferDonutWidget(core.CWorkflowTaskWidget):
         # Create layout : QGridLayout by default
         self.grid_layout = QGridLayout()
 
-        # Model
-        self.combo_model_name = pyqtutils.append_combo(self.grid_layout, "Model")
+        # Pretrained model
+        self.combo_model_name = pyqtutils.append_combo(self.grid_layout, "Pretrained model name")
         for model in model_zoo:
             self.combo_model_name.addItem(model)
+
+        # Custom model
+        self.browse_model_name = pyqtutils.append_browse_file(self.grid_layout, "Custom train folder",
+                                                              self.parameters.browse_memory,
+                                                              mode=QFileDialog.Directory)
 
         # Prompt
         self.edit_prompt = pyqtutils.append_edit(self.grid_layout, "Prompt", self.parameters.prompt)
 
+        # Task name
+        self.edit_task_name = pyqtutils.append_edit(self.grid_layout, "Task name (for custom train)", self.parameters.task_name)
+
         # Cuda
         self.check_cuda = pyqtutils.append_check(self.grid_layout, "Cuda", self.parameters.cuda and cuda.is_available())
         self.check_cuda.setEnabled(cuda.is_available())
-
-        self.check_docvqa = pyqtutils.append_check(self.grid_layout, "Visual question answering", self.parameters == 'docvqa')
 
         # PyQt -> Qt wrapping
         layout_ptr = qtconversion.PyQtToQt(self.grid_layout)
@@ -71,11 +77,14 @@ class InferDonutWidget(core.CWorkflowTaskWidget):
         # Example : self.parameters.windowSize = self.spinWindowSize.value()
         self.parameters.prompt = self.edit_prompt.text()
         self.parameters.cuda = self.check_cuda.isChecked()
-        self.parameters.model_name = self.combo_model_name.currentText()
-        if self.parameters.model_name is not model_zoo:
-            self.parameters.task_name = model_zoo[self.parameters.model_name]
+        model_name_input = self.browse_model_name.path
+        if model_name_input != '':
+            self.parameters.model_name = model_name_input
+            self.parameters.task_name = self.edit_task_name.text()
+            self.parameters.browse_memory = model_name_input
         else:
-            self.parameters.task_name = 'docvqa' if self.check_docvqa.isChecked() else 'other'
+            self.parameters.model_name = self.combo_model_name.currentText()
+            self.parameters.task_name = model_zoo[self.parameters.model_name]
 
         # Send signal to launch the process
         self.emit_apply(self.parameters)

@@ -36,9 +36,11 @@ class InferDonutParam(core.CWorkflowTaskParam):
         # Place default value initialization here
         # Example : self.windowSize = 25
         self.model_name = 'naver-clova-ix/donut-base-finetuned-docvqa'
-        self.task_name = 'docvqa'
+        self.task_name = ''
         self.cuda = True
         self.prompt = ''
+        # used only with Ikomia STUDIO to store custom train browser's content
+        self.browse_memory = ''
 
     def set_values(self, param_map):
         # Set parameters values from Ikomia application
@@ -51,6 +53,7 @@ class InferDonutParam(core.CWorkflowTaskParam):
         self.task_name = param_map["task_name"]
         self.prompt = param_map["prompt"]
         self.cuda = strtobool(param_map["cuda"])
+        self.browse_memory = param_map["browse_memory"]
 
     def get_values(self):
         # Send parameters values to Ikomia application
@@ -61,6 +64,7 @@ class InferDonutParam(core.CWorkflowTaskParam):
         param_map["task_name"] = self.task_name
         param_map["prompt"] = self.prompt
         param_map["cuda"] = str(self.cuda)
+        param_map["browse_memory"] = self.browse_memory
         return param_map
 
 
@@ -98,7 +102,6 @@ class InferDonut(dataprocess.C2dImageTask):
                 prompt=f"<s_{task_name}><s_question>{question.lower()}</s_question><s_answer>",
             )["predictions"][0]
         else:
-            print(task_name)
             output = \
             self.model.inference(image=img, prompt=f"<s_{task_name}>")["predictions"][0]
         return output
@@ -111,14 +114,14 @@ class InferDonut(dataprocess.C2dImageTask):
         param = self.get_param_object()
 
         if self.model is None or param.update:
+            print("Loading model...")
             self.model = DonutModel.from_pretrained(param.model_name, ignore_mismatched_sizes=True)
+            print("Model loaded.")
             if torch.cuda.is_available() and param.cuda:
                 self.model.half()
                 self.model.to("cuda")
             self.model.eval()
-            if param.model_name in model_zoo:
-                param.task_name = model_zoo[param.model_name]
-            elif self.task_name != 'docvqa' and param.prompt != '':
+            if param.task_name != 'docvqa' and param.prompt != '':
                 print("Parameter prompt is only available for document visual question answering task.")
             param.update = False
 
