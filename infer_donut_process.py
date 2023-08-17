@@ -19,9 +19,10 @@
 import copy
 from ikomia import core, dataprocess
 from ikomia.utils import strtobool
-from donut import DonutModel
+from infer_donut.model import DonutModel
 import torch
 from PIL import Image
+from infer_donut.model_zoo import model_zoo
 
 
 # --------------------
@@ -37,7 +38,7 @@ class InferDonutParam(core.CWorkflowTaskParam):
         self.model_name = 'naver-clova-ix/donut-base-finetuned-docvqa'
         self.task_name = ''
         self.cuda = True
-        self.prompt = ''
+        self.prompt = 'what is the title'
         # used only with Ikomia STUDIO to store custom train browser's content
         self.browse_memory = ''
 
@@ -120,6 +121,9 @@ class InferDonut(dataprocess.C2dImageTask):
                 self.model.half()
                 self.model.to("cuda")
             self.model.eval()
+
+            if param.model_name in model_zoo:
+                param.task_name = model_zoo[param.model_name]
             if param.task_name != 'docvqa' and param.prompt != '':
                 print("Parameter prompt is only available for document visual question answering task.")
             param.update = False
