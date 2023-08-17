@@ -18,7 +18,6 @@
 
 import copy
 from ikomia import core, dataprocess
-from infer_donut.model_zoo import model_zoo
 from ikomia.utils import strtobool
 from donut import DonutModel
 import torch
