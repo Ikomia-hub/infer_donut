@@ -1,5 +1,4 @@
 transformers >= 4.26.0, <=4.28.0
-pytorch-lightning==1.6.4
 
 --find-links https://download.pytorch.org/whl/torch_stable.html
 torch==2.1.2+cu121; python_version >= "3.11"
