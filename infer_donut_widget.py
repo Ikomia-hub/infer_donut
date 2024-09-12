@@ -16,15 +16,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from torch import cuda
 from ikomia import core, dataprocess
 from ikomia.utils import pyqtutils, qtconversion
 from infer_donut.infer_donut_process import InferDonutParam
+from infer_donut.model_zoo import model_zoo
 
 # PyQt GUI framework
 from PyQt5.QtWidgets import *
-
-from infer_donut.model_zoo import model_zoo
-from torch import cuda
 
 
 # --------------------
@@ -41,6 +40,10 @@ class InferDonutWidget(core.CWorkflowTaskWidget):
         else:
             self.parameters = param
 
+        # Save current state
+        self.cuda = self.parameters.cuda
+        self.model_name = self.parameters.model_name
+
         # Create layout : QGridLayout by default
         self.grid_layout = QGridLayout()
 
@@ -48,6 +51,8 @@ class InferDonutWidget(core.CWorkflowTaskWidget):
         self.combo_model_name = pyqtutils.append_combo(self.grid_layout, "Pretrained model name")
         for model in model_zoo:
             self.combo_model_name.addItem(model)
+
+        self.combo_model_name.setCurrentText(self.parameters.model_name)
 
         # Custom model
         self.browse_model_name = pyqtutils.append_browse_file(self.grid_layout, "Custom train folder",
@@ -58,7 +63,9 @@ class InferDonutWidget(core.CWorkflowTaskWidget):
         self.edit_prompt = pyqtutils.append_edit(self.grid_layout, "Prompt", self.parameters.prompt)
 
         # Task name
-        self.edit_task_name = pyqtutils.append_edit(self.grid_layout, "Task name (for custom train)", self.parameters.task_name)
+        self.edit_task_name = pyqtutils.append_edit(self.grid_layout,
+                                                    "Task name (for custom train)",
+                                                    self.parameters.task_name)
 
         # Cuda
         self.check_cuda = pyqtutils.append_check(self.grid_layout, "Cuda", self.parameters.cuda and cuda.is_available())
@@ -72,19 +79,24 @@ class InferDonutWidget(core.CWorkflowTaskWidget):
 
     def on_apply(self):
         # Apply button clicked slot
-
         # Get parameters from widget
-        # Example : self.parameters.windowSize = self.spinWindowSize.value()
         self.parameters.prompt = self.edit_prompt.text()
         self.parameters.cuda = self.check_cuda.isChecked()
         model_name_input = self.browse_model_name.path
+
         if model_name_input != '':
             self.parameters.model_name = model_name_input
             self.parameters.task_name = self.edit_task_name.text()
-            self.parameters.browse_memory = model_name_input
+            self.parameters.custom_model_folder = model_name_input
         else:
             self.parameters.model_name = self.combo_model_name.currentText()
             self.parameters.task_name = model_zoo[self.parameters.model_name]
+
+        # Check state changes
+        if self.parameters.model_name != self.model_name or self.parameters.cuda != self.cuda:
+            self.model_name = self.parameters.model_name
+            self.cuda = self.parameters.cuda
+            self.parameters.update = True
 
         # Send signal to launch the process
         self.emit_apply(self.parameters)

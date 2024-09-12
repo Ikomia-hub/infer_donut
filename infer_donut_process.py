@@ -36,7 +36,7 @@ class InferDonutParam(core.CWorkflowTaskParam):
         # Place default value initialization here
         self.model_name = "naver-clova-ix/donut-base-finetuned-docvqa"
         self.task_name = ""
-        self.cuda = True
+        self.cuda = torch.cuda.is_available()
         self.prompt = "what is the title"
         # used only with Ikomia STUDIO to store custom train browser's content
         self.custom_model_folder = ""
@@ -114,23 +114,24 @@ class InferDonut(dataprocess.C2dImageTask):
             print("Loading model...")
             self.model = DonutModel.from_pretrained(param.model_name, ignore_mismatched_sizes=True)
             print("Model loaded.")
+
             if torch.cuda.is_available() and param.cuda:
                 self.model.half()
                 self.model.to("cuda")
+
             self.model.eval()
 
             if param.model_name in model_zoo:
                 param.task_name = model_zoo[param.model_name]
             if param.task_name != 'docvqa' and param.prompt != '':
                 print("Parameter prompt is only available for document visual question answering task.")
+
             param.update = False
 
         img_input = self.get_input(0)
-
         img = img_input.get_image()
 
         data_output = self.get_output(1)
-
         with torch.no_grad():
             data_output.data = self.infer(img, param.task_name, param.prompt)
 
