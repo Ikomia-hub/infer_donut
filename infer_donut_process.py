@@ -34,37 +34,38 @@ class InferDonutParam(core.CWorkflowTaskParam):
     def __init__(self):
         core.CWorkflowTaskParam.__init__(self)
         # Place default value initialization here
-        # Example : self.windowSize = 25
-        self.model_name = 'naver-clova-ix/donut-base-finetuned-docvqa'
-        self.task_name = ''
+        self.model_name = "naver-clova-ix/donut-base-finetuned-docvqa"
+        self.task_name = ""
         self.cuda = True
-        self.prompt = 'what is the title'
+        self.prompt = "what is the title"
         # used only with Ikomia STUDIO to store custom train browser's content
-        self.browse_memory = ''
+        self.custom_model_folder = ""
+        self.update = False
 
     def set_values(self, param_map):
         # Set parameters values from Ikomia application
         # Parameters values are stored as string and accessible like a python dict
-        # Example : self.windowSize = int(param_map["windowSize"])
-        if self.model_name != param_map["model_name"] or self.task_name != param_map["task_name"] or \
-                self.cuda != strtobool(param_map["cuda"]):
+        if (self.model_name != param_map["model_name"] or
+                self.task_name != param_map["task_name"] or
+                self.cuda != strtobool(param_map["cuda"])):
             self.update = True
+
         self.model_name = param_map["model_name"]
         self.task_name = param_map["task_name"]
         self.prompt = param_map["prompt"]
         self.cuda = strtobool(param_map["cuda"])
-        self.browse_memory = param_map["browse_memory"]
+        self.custom_model_folder = param_map["custom_model_folder"]
 
     def get_values(self):
         # Send parameters values to Ikomia application
         # Create the specific dict structure (string container)
-        param_map = {}
-        # Example : paramMap["windowSize"] = str(self.windowSize)
-        param_map["model_name"] = self.model_name
-        param_map["task_name"] = self.task_name
-        param_map["prompt"] = self.prompt
-        param_map["cuda"] = str(self.cuda)
-        param_map["browse_memory"] = self.browse_memory
+        param_map = {
+            "model_name": self.model_name,
+            "task_name": self.task_name,
+            "prompt": self.prompt,
+            "cuda": str(self.cuda),
+            "custom_model_folder": self.custom_model_folder
+        }
         return param_map
 
 
@@ -76,14 +77,10 @@ class InferDonut(dataprocess.C2dImageTask):
 
     def __init__(self, name, param):
         dataprocess.C2dImageTask.__init__(self, name)
-        # Add input/output of the process here
-        # Example :  self.add_input(dataprocess.CImageIO())
-        #           self.add_output(dataprocess.CImageIO())
-
-        # Create parameters class
         self.model = None
         self.add_output(dataprocess.DataDictIO())
 
+        # Create parameters class
         if param is None:
             self.set_param_object(InferDonutParam())
         else:
@@ -102,8 +99,8 @@ class InferDonut(dataprocess.C2dImageTask):
                 prompt=f"<s_{task_name}><s_question>{question.lower()}</s_question><s_answer>",
             )["predictions"][0]
         else:
-            output = \
-            self.model.inference(image=img, prompt=f"<s_{task_name}>")["predictions"][0]
+            output = self.model.inference(image=img, prompt=f"<s_{task_name}>")["predictions"][0]
+            
         return output
 
     def run(self):
@@ -154,23 +151,32 @@ class InferDonutFactory(dataprocess.CTaskFactory):
         dataprocess.CTaskFactory.__init__(self)
         # Set process information as string here
         self.info.name = "infer_donut"
-        self.info.short_description = "your short description"
-        self.info.description = "your description"
+        self.info.short_description = "OCR-free model for document understanding"
         # relative path -> as displayed in Ikomia application process tree
-        self.info.path = "Plugins/Python"
+        self.info.path = "Plugins/Python/OCR"
         self.info.version = "1.0.0"
-        # self.info.icon_path = "your path to a specific icon"
-        self.info.authors = "algorithm author"
-        self.info.article = "title of associated research article"
-        self.info.journal = "publication journal"
-        self.info.year = 2021
+        self.info.icon_path = "images/icon.png"
+        self.info.authors = ("Geewook Kim, Teakgyu Hong, Moonbin Yim, Jeongyeon Nam, Jinyoung Park, Jinyeong Yim, "
+                             "Wonseok Hwang, Sangdoo Yun, Dongyoon Han, Seunghyun Park")
+        self.info.article = "OCR-free Document Understanding Transformer"
+        self.info.journal = "ECCV"
+        self.info.year = 2022
         self.info.license = "MIT License"
         # URL of documentation
-        self.info.documentation_link = ""
+        self.info.documentation_link = "https://arxiv.org/pdf/2111.15664"
         # Code source repository
-        self.info.repository = ""
+        self.info.repository = "https://github.com/Ikomia-hub/infer_donut"
+        self.info.original_repository = "https://github.com/clovaai/donut"
         # Keywords used for search
-        self.info.keywords = "your,keywords,here"
+        self.info.keywords = "document,understanding,kie"
+        # General type: INFER, TRAIN, DATASET or OTHER
+        self.info.algo_type = core.AlgoType.INFER
+
+        # Algorithms tasks: CLASSIFICATION, COLORIZATION, IMAGE_CAPTIONING, IMAGE_GENERATION,
+        # IMAGE_MATTING, INPAINTING, INSTANCE_SEGMENTATION, KEYPOINTS_DETECTION,
+        # OBJECT_DETECTION, OBJECT_TRACKING, OCR, OPTICAL_FLOW, OTHER, PANOPTIC_SEGMENTATION,
+        # SEMANTIC_SEGMENTATION or SUPER_RESOLUTION
+        self.info.algo_tasks = "OCR"
 
     def create(self, param=None):
         # Create process object

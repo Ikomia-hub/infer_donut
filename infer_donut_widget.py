@@ -51,7 +51,7 @@ class InferDonutWidget(core.CWorkflowTaskWidget):
 
         # Custom model
         self.browse_model_name = pyqtutils.append_browse_file(self.grid_layout, "Custom train folder",
-                                                              self.parameters.browse_memory,
+                                                              self.parameters.custom_model_folder,
                                                               mode=QFileDialog.Directory)
 
         # Prompt
