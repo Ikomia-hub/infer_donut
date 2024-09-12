@@ -52,10 +52,10 @@ wf = Workflow()
 algo = wf.add_task(name="infer_donut", auto_connect=True)
 
 # Run on your image  
-wf.run_on(url="https://github.com/Ikomia-hub/infer_donut/blob/main/images/example.jpg")
+wf.run_on(url="https://github.com/Ikomia-hub/infer_donut/blob/main/images/example.jpg?raw=true")
 
 # Display results
-extracted_data = algo.get_output(0)
+extracted_data = algo.get_output(1)
 print(extracted_data.data)
 ```
 
@@ -88,14 +88,14 @@ algo = wf.add_task(name="infer_donut", auto_connect=True)
 
 algo.set_parameters({
     "model_name":"naver-clova-ix/donut-base-finetuned-docvqa",
-    "prompt":"What is  date of the document",
+    "prompt":"What is the date of the document",
     "cuda":"True"
 })
 
-wf.run_on(url="https://github.com/Ikomia-hub/infer_donut/blob/main/images/example.jpg")
+wf.run_on(url="https://github.com/Ikomia-hub/infer_donut/blob/main/images/example.jpg?raw=true")
 
 # Display results
-extracted_data = algo.get_output(0)
+extracted_data = algo.get_output(1)
 print(extracted_data.data)
 ```
 
