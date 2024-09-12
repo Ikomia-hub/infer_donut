@@ -73,13 +73,12 @@ Ikomia Studio offers a friendly UI with the same features as the API.
 - **prompt** (str): question about document understanding for example.
 - **cuda** (bool): If True, CUDA-based inference (GPU). If False, run on CPU.
 - **custom_model_folder**: custom model folder (optional)
-- **task_name**: in case of custom model, you should specify the corresponfing task
+- **task_name**: in case of custom model, you should specify the corresponding task
 
 **Parameters** should be in **strings format**  when added to the dictionary.
 
 ```python
 from ikomia.dataprocess.workflow import Workflow
-from ikomia.utils.displayIO import display
 
 # Init your workflow
 wf = Workflow()
@@ -89,7 +88,7 @@ algo = wf.add_task(name="infer_donut", auto_connect=True)
 
 algo.set_parameters({
     "model_name":"naver-clova-ix/donut-base-finetuned-docvqa",
-    "prompt":"What is the type of the document",
+    "prompt":"What is  date of the document",
     "cuda":"True"
 })
 
