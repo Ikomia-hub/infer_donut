@@ -15,13 +15,15 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 import copy
-from ikomia import core, dataprocess
-from ikomia.utils import strtobool
-from infer_donut.model import DonutModel
+
 import torch
 from PIL import Image
+
+from ikomia import core, dataprocess
+from ikomia.utils import strtobool
+
+from infer_donut.model import DonutModel
 from infer_donut.model_zoo import model_zoo
 
 
@@ -91,6 +93,29 @@ class InferDonut(dataprocess.C2dImageTask):
         # This is handled by the main progress bar of Ikomia application
         return 1
 
+    def _load_model(self):
+        param = self.get_param_object()
+        print("Loading model...")
+        self.model = DonutModel.from_pretrained(param.model_name, ignore_mismatched_sizes=True)
+        print("Model loaded.")
+
+        if torch.cuda.is_available() and param.cuda:
+            self.model.half()
+            self.model.to("cuda")
+
+        self.model.eval()
+
+        if param.model_name in model_zoo:
+            param.task_name = model_zoo[param.model_name]
+        if param.task_name != 'docvqa' and param.prompt != '':
+            print("Parameter prompt is only available for document visual question answering task.")
+
+        param.update = False
+
+    def init_long_process(self):
+        self._load_model()
+        super().init_long_process()
+
     def infer(self, img, task_name, question):
         img = Image.fromarray(img)
         if task_name == "docvqa":
@@ -109,24 +134,8 @@ class InferDonut(dataprocess.C2dImageTask):
         self.begin_task_run()
 
         param = self.get_param_object()
-
-        if self.model is None or param.update:
-            print("Loading model...")
-            self.model = DonutModel.from_pretrained(param.model_name, ignore_mismatched_sizes=True)
-            print("Model loaded.")
-
-            if torch.cuda.is_available() and param.cuda:
-                self.model.half()
-                self.model.to("cuda")
-
-            self.model.eval()
-
-            if param.model_name in model_zoo:
-                param.task_name = model_zoo[param.model_name]
-            if param.task_name != 'docvqa' and param.prompt != '':
-                print("Parameter prompt is only available for document visual question answering task.")
-
-            param.update = False
+        if param.update:
+            self._load_model()
 
         img_input = self.get_input(0)
         img = img_input.get_image()
@@ -155,7 +164,8 @@ class InferDonutFactory(dataprocess.CTaskFactory):
         self.info.short_description = "OCR-free model for document understanding"
         # relative path -> as displayed in Ikomia application process tree
         self.info.path = "Plugins/Python/OCR"
-        self.info.version = "1.0.2"
+        self.info.version = "1.1.0"
+        self.info.min_ikomia_version = "0.15.0"
         self.info.icon_path = "images/icon.png"
         self.info.authors = ("Geewook Kim, Teakgyu Hong, Moonbin Yim, Jeongyeon Nam, Jinyoung Park, Jinyeong Yim, "
                              "Wonseok Hwang, Sangdoo Yun, Dongyoon Han, Seunghyun Park")
@@ -178,6 +188,10 @@ class InferDonutFactory(dataprocess.CTaskFactory):
         # OBJECT_DETECTION, OBJECT_TRACKING, OCR, OPTICAL_FLOW, OTHER, PANOPTIC_SEGMENTATION,
         # SEMANTIC_SEGMENTATION or SUPER_RESOLUTION
         self.info.algo_tasks = "OCR"
+        self.info.hardware_config.min_cpu = 4
+        self.info.hardware_config.min_ram = 16
+        self.info.hardware_config.gpu_required = False
+        self.info.hardware_config.min_vram = 16
 
     def create(self, param=None):
         # Create process object
