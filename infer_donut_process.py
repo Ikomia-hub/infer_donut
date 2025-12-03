@@ -164,7 +164,7 @@ class InferDonutFactory(dataprocess.CTaskFactory):
         self.info.short_description = "OCR-free model for document understanding"
         # relative path -> as displayed in Ikomia application process tree
         self.info.path = "Plugins/Python/OCR"
-        self.info.version = "1.1.0"
+        self.info.version = "1.1.1"
         self.info.min_ikomia_version = "0.15.0"
         self.info.icon_path = "images/icon.png"
         self.info.authors = ("Geewook Kim, Teakgyu Hong, Moonbin Yim, Jeongyeon Nam, Jinyoung Park, Jinyeong Yim, "
