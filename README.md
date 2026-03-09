@@ -52,7 +52,7 @@ wf = Workflow()
 algo = wf.add_task(name="infer_donut", auto_connect=True)
 
 # Run on your image  
-wf.run_on(url="https://github.com/Ikomia-hub/infer_donut/blob/main/images/example.jpg?raw=true")
+wf.run_on(url="https://raw.githubusercontent.com/Ikomia-hub/infer_donut/refs/heads/main/images/example.jpg")
 
 # Display results
 extracted_data = algo.get_output(1)
@@ -92,7 +92,7 @@ algo.set_parameters({
     "cuda": "True"
 })
 
-wf.run_on(url="https://github.com/Ikomia-hub/infer_donut/blob/main/images/example.jpg?raw=true")
+wf.run_on(url="https://raw.githubusercontent.com/Ikomia-hub/infer_donut/refs/heads/main/images/example.jpg")
 
 # Display results
 extracted_data = algo.get_output(1)
@@ -113,7 +113,7 @@ wf = Workflow()
 algo = wf.add_task(name="infer_donut", auto_connect=True)
 
 # Run on your image  
-wf.run_on(url="https://github.com/Ikomia-hub/infer_donut/blob/main/images/example.jpg?raw=true")
+wf.run_on(url="https://raw.githubusercontent.com/Ikomia-hub/infer_donut/refs/heads/main/images/example.jpg")
 
 # Iterate over outputs
 for output in algo.get_outputs():
