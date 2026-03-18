@@ -4,6 +4,7 @@ import torch
 from PIL import Image
 
 from ikomia import core, dataprocess
+from ikomia.dataprocess.io.datadictIO import DataDictIO
 from ikomia.utils import strtobool
 
 from infer_donut.model import DonutModel
@@ -63,7 +64,7 @@ class InferDonut(dataprocess.C2dImageTask):
     def __init__(self, name, param):
         dataprocess.C2dImageTask.__init__(self, name)
         self.model = None
-        self.add_output(dataprocess.datadictIO.DataDictIO())
+        self.add_output(DataDictIO())
 
         # Create parameters class
         if param is None:
