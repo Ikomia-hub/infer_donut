@@ -63,7 +63,7 @@ class InferDonut(dataprocess.C2dImageTask):
     def __init__(self, name, param):
         dataprocess.C2dImageTask.__init__(self, name)
         self.model = None
-        self.add_output(dataprocess.DataDictIO())
+        self.add_output(dataprocess.datadictIO.DataDictIO())
 
         # Create parameters class
         if param is None:
